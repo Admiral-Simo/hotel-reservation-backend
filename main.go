@@ -17,11 +17,3 @@ func main() {
 	apiv1.Get("/user/:id", api.HandleGetUser)
 	app.Listen(*listenAddr)
 }
-
-func handleFoo(c *fiber.Ctx) error {
-	return c.JSON(map[string]string{"msg": "working just fine something"})
-}
-
-func handleUser(c *fiber.Ctx) error {
-	return c.JSON(map[string]string{"user": "James Foo"})
-}
