@@ -60,10 +60,6 @@ func seedHotel(name, location string) {
 }
 
 func main() {
-	err := client.Database(db.DBNAME).Drop(ctx)
-	if err != nil {
-		log.Fatalf("failed to drop %s: %s", db.DBNAME, err)
-	}
 	seedHotel("Royal Mansour", "Marrakech Morocco")
 	seedHotel("Mazagan Beach Resort", "Casablanca")
 }
@@ -77,6 +73,10 @@ func init() {
 	}
 	if err := client.Database(db.DBNAME).Drop(ctx); err != nil {
 		log.Fatal("couldn't drop the database:", err)
+	}
+	err = client.Database(db.DBNAME).Drop(ctx)
+	if err != nil {
+		log.Fatalf("failed to drop %s: %s", db.DBNAME, err)
 	}
 
 	hotelStore = db.NewMongoHotelStore(client)
