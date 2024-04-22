@@ -17,7 +17,7 @@ const (
 type HotelStore interface {
 	Dropper
 
-	Insert(context.Context, *types.Hotel) (*types.Hotel, error)
+	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
 	Update(ctx context.Context, filter bson.M, update bson.M) error
 	GetAll(ctx context.Context) ([]*types.Hotel, error)
 	Get(ctx context.Context, oid primitive.ObjectID) (*types.Hotel, error)
