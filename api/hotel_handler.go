@@ -24,15 +24,15 @@ func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	hotel, err := h.hotelStore.Get(c.Context(), oid)
-    if err != nil {
-        return err
-    }
-    return c.JSON(hotel)
+	hotel, err := h.hotelStore.GetHotel(c.Context(), oid)
+	if err != nil {
+		return err
+	}
+	return c.JSON(hotel)
 }
 
 func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
-	hotels, err := h.hotelStore.GetAll(c.Context())
+	hotels, err := h.hotelStore.GetHotels(c.Context(), nil)
 	if err != nil {
 		return err
 	}
