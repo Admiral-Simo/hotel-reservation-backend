@@ -14,10 +14,6 @@ const (
 	userColl = "users"
 )
 
-type Dropper interface {
-	Drop(context.Context) error
-}
-
 type UserStore interface {
 	Dropper
 
@@ -30,19 +26,18 @@ type UserStore interface {
 
 type MongoUserStore struct {
 	client *mongo.Client
-	dbname string
 	coll   *mongo.Collection
 }
 
-func NewMongoUserStore(client *mongo.Client, dbname string) *MongoUserStore {
+func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
 	return &MongoUserStore{
 		client: client,
-		coll:   client.Database(dbname).Collection(userColl),
+		coll:   client.Database(DBNAME).Collection(userColl),
 	}
 }
 
 func (s *MongoUserStore) Drop(ctx context.Context) error {
-	fmt.Println("--- dropping user collection")
+	fmt.Println("--- dropping users collection")
 	return s.coll.Drop(ctx)
 }
 
@@ -87,10 +82,7 @@ func (s *MongoUserStore) UpdateUser(ctx context.Context, filter bson.M, params t
 	}
 	update := bson.M{"$set": values}
 	_, err = s.coll.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (s *MongoUserStore) DeleteUser(ctx context.Context, id string) error {
@@ -101,8 +93,6 @@ func (s *MongoUserStore) DeleteUser(ctx context.Context, id string) error {
 	// TODO: maybe it's a good idea to handle if we did not delete any user
 	// maybe log it or something??
 	filter := bson.M{"_id": oid}
-	if _, err := s.coll.DeleteOne(ctx, filter); err != nil {
-		return err
-	}
-	return nil
+	_, err = s.coll.DeleteOne(ctx, filter)
+	return err
 }
