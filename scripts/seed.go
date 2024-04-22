@@ -19,10 +19,11 @@ var (
 	counter    int
 )
 
-func seedHotel(name, location string) {
+func seedHotel(name, location string, rating float32) {
 	hotel := &types.Hotel{
 		Name:     name,
 		Location: location,
+		Rating:   rating,
 	}
 
 	insertedHotel, err := hotelStore.InsertHotel(ctx, hotel)
@@ -60,9 +61,9 @@ func seedHotel(name, location string) {
 }
 
 func main() {
-	seedHotel("Royal Mansour", "Marrakech Morocco")
-	seedHotel("Mazagan Beach Resort", "Casablanca")
-	seedHotel("Dont die in your seleep", "London")
+	seedHotel("Royal Mansour", "Marrakech Morocco", 3)
+	seedHotel("Mazagan Beach Resort", "Casablanca", 4)
+	seedHotel("Dont die in your seleep", "London", 1.5)
 }
 
 func init() {
