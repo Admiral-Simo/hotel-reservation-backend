@@ -19,7 +19,7 @@ var (
 	counter    int
 )
 
-func seedHotel(name, location string) error {
+func seedHotel(name, location string) {
 	hotel := &types.Hotel{
 		Name:     name,
 		Location: location,
@@ -27,7 +27,7 @@ func seedHotel(name, location string) error {
 
 	insertedHotel, err := hotelStore.InsertHotel(ctx, hotel)
 	if err != nil {
-		return err
+		log.Fatal("couldn't insert hotel:", err)
 	}
 
 	rooms := []types.Room{
@@ -57,7 +57,6 @@ func seedHotel(name, location string) error {
 	}
 
 	counter++
-	return nil
 }
 
 func main() {
