@@ -16,6 +16,7 @@ const (
 type UserStore interface {
 	GetUserById(context.Context, string) (*types.User, error)
 	GetUsers(context.Context) ([]*types.User, error)
+	DeleteUserById(context.Context, string) error
 	InsertUser(context.Context, *types.User) (*types.User, error)
 }
 
@@ -64,4 +65,18 @@ func (s *MongoUserStore) GetUserById(ctx context.Context, id string) (*types.Use
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (s *MongoUserStore) DeleteUserById(ctx context.Context, id string) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	// TODO: maybe it's a good idea to handle if we did not delete any user
+	// maybe log it or something??
+	filter := bson.M{"_id": oid}
+	if _, err := s.coll.DeleteOne(ctx, filter); err != nil {
+		return err
+	}
+	return nil
 }

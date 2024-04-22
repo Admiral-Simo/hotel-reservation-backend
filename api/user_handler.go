@@ -16,6 +16,20 @@ func NewUserHandler(userStore db.UserStore) *UserHandler {
 	}
 }
 
+func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
+	return c.JSON("something")
+}
+
+func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
+	userID := c.Params("id")
+	if err := h.userStore.DeleteUserById(c.Context(), userID); err != nil {
+		return err
+	}
+	return c.JSON(map[string]string{
+		"deleted": userID,
+	})
+}
+
 func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	var params types.CreateUserParams
 	if err := c.BodyParser(&params); err != nil {
