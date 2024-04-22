@@ -62,6 +62,7 @@ func seedHotel(name, location string) {
 func main() {
 	seedHotel("Royal Mansour", "Marrakech Morocco")
 	seedHotel("Mazagan Beach Resort", "Casablanca")
+	seedHotel("Dont die in your seleep", "London")
 }
 
 func init() {
