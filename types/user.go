@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 
@@ -23,20 +22,24 @@ type CreateUserParams struct {
 	Password  string `json:"password"`
 }
 
-func (params *CreateUserParams) Valide() error {
+func (params *CreateUserParams) Valide() map[string]string {
+	errs := make(map[string]string)
 	if len(params.FirstName) < minFirstNameLen {
-		return fmt.Errorf("firstName length should be at least %d characters", minFirstNameLen)
+		errs["firstName"] = fmt.Sprintf("firstName length should be at least %d characters", minFirstNameLen)
 	}
 	if len(params.LastName) < minLastNameLen {
-		return fmt.Errorf("lastName length should be at least %d characters", minLastNameLen)
+		errs["lastName"] = fmt.Sprintf("lastName length should be at least %d characters", minLastNameLen)
 	}
 	if len(params.Password) < minPasswordLen {
-		return fmt.Errorf("password length should be at least %d characters", minPasswordLen)
+		errs["password"] = fmt.Sprintf("password length should be at least %d characters", minPasswordLen)
 	}
 	if !isEmailValid(params.Email) {
-		return errors.New("email is invalid")
+		errs["email"] = "email is invalid"
 	}
-	return nil
+	if len(errs) == 0 {
+		return nil
+	}
+	return errs
 }
 
 func isEmailValid(e string) bool {
@@ -53,10 +56,6 @@ type User struct {
 }
 
 func NewUserFromParams(params CreateUserParams) (*User, error) {
-	err := params.Valide()
-	if err != nil {
-		return nil, err
-	}
 	encpw, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcryptCost)
 	if err != nil {
 		return nil, err
