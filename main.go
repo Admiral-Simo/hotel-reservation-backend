@@ -29,17 +29,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// stores initialization
-	userStore := db.NewMongoUserStore(client)
-	hotelStore := db.NewMongoHotelStore(client)
-	roomStore := db.NewMongoRoomStore(client, hotelStore)
-
-	// handlers initialization
-	userHandler := api.NewUserHandler(userStore)
-	hotelHandler := api.NewHotelHandler(hotelStore, roomStore)
-
-	app := fiber.New(config)
-	apiv1 := app.Group("/api/v1")
+	// stores
+	// handlers
+	// api applications
+	var (
+		userStore    = db.NewMongoUserStore(client)
+		hotelStore   = db.NewMongoHotelStore(client)
+		roomStore    = db.NewMongoRoomStore(client, hotelStore)
+		userHandler  = api.NewUserHandler(userStore)
+		hotelHandler = api.NewHotelHandler(hotelStore, roomStore)
+		app          = fiber.New(config)
+		apiv1        = app.Group("/api/v1")
+	)
 
 	// user routes
 	apiv1.Post("/user", userHandler.HandlePostUser)
