@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http/httptest"
 	"testing"
 
@@ -60,8 +59,21 @@ func TestPostUser(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/user", bytes.NewReader(b))
 	req.Header.Add("Content-Type", "application/json")
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
 
-	// what are we expecting
-	fmt.Println(resp.Status)
+	if err != nil {
+		t.Error(err)
+	}
+
+	var user types.User
+	json.NewDecoder(resp.Body).Decode(&user)
+	if user.FirstName != params.FirstName {
+		t.Errorf("expected firstname  %s but got %s", params.FirstName, user.FirstName)
+	}
+	if user.LastName != params.LastName {
+		t.Errorf("expected lastname  %s but got %s", params.LastName, user.LastName)
+	}
+	if user.Email != params.Email {
+		t.Errorf("expected email  %s but got %s", params.Email, user.Email)
+	}
 }
