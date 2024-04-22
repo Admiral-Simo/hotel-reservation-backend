@@ -1,9 +1,12 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserHandler struct {
@@ -35,6 +38,10 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
+	errs := params.Valide()
+	if errs != nil {
+		return c.JSON(errs)
+	}
 	user, err := types.NewUserFromParams(params)
 	if err != nil {
 		return err
@@ -50,6 +57,9 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 	user, err := h.userStore.GetUserById(c.Context(), id)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return errors.New("user not found")
+		}
 		return err
 	}
 	return c.JSON(user)
