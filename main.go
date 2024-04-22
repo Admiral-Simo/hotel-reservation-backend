@@ -49,9 +49,11 @@ func main() {
 	apiv1.Get("/user", userHandler.HandleGetUsers)
 	apiv1.Get("/user/:id", userHandler.HandleGetUser)
 
-	// user routes
+	// hotel routes
 	apiv1.Get("/hotel", hotelHandler.HandleGetHotels)
 	apiv1.Get("/hotel/:id", hotelHandler.HandleGetHotel)
+	// hotel rooms
+	apiv1.Get("/hotel/:id/rooms", hotelHandler.HandleGetRooms)
 
 	app.Listen(*listenAddr)
 }
