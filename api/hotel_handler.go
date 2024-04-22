@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -31,7 +33,17 @@ func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 	return c.JSON(hotel)
 }
 
+type HotelQueryParams struct {
+	Rooms  bool
+	Rating float32
+}
+
 func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
+	var qparams HotelQueryParams
+	if err := c.QueryParser(&qparams); err != nil {
+		return err
+	}
+	fmt.Println(qparams)
 	hotels, err := h.hotelStore.GetHotels(c.Context(), nil)
 	if err != nil {
 		return err
