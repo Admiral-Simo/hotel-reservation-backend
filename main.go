@@ -33,11 +33,16 @@ func main() {
 	// handlers
 	// api applications
 	var (
-		userStore    = db.NewMongoUserStore(client)
-		hotelStore   = db.NewMongoHotelStore(client)
-		roomStore    = db.NewMongoRoomStore(client, hotelStore)
+		userStore  = db.NewMongoUserStore(client)
+		hotelStore = db.NewMongoHotelStore(client)
+		roomStore  = db.NewMongoRoomStore(client, hotelStore)
+		store      = &db.Store{
+			User:  userStore,
+			Room:  roomStore,
+			Hotel: hotelStore,
+		}
 		userHandler  = api.NewUserHandler(userStore)
-		hotelHandler = api.NewHotelHandler(hotelStore, roomStore)
+		hotelHandler = api.NewHotelHandler(store)
 		app          = fiber.New(config)
 		apiv1        = app.Group("/api/v1")
 	)
