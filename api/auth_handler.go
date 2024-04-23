@@ -1,10 +1,13 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthHandler struct {
@@ -28,7 +31,20 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 		return err
 	}
 
-	fmt.Println(aParams)
+	user, err := h.userStore.GetUserByEmail(c.Context(), aParams.Email)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return fmt.Errorf("invalid credentials")
+		}
+		return err
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(aParams.Password)); err != nil {
+		return fmt.Errorf("invalid credentials")
+	}
+
+    // TODO: store jwt token into the User HEADER
+	fmt.Println("authenticated ->", user)
 
 	return nil
 }
