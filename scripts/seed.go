@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
@@ -17,7 +16,6 @@ var (
 	roomStore  db.RoomStore
 	userStore  db.UserStore
 	ctx        = context.Background()
-	counter    int
 )
 
 func seedHotel(name, location string, rating float32) {
@@ -47,18 +45,13 @@ func seedHotel(name, location string, rating float32) {
 		},
 	}
 
-	fmt.Printf("hotel number %d: %+v\n", counter, insertedHotel)
-
 	for _, room := range rooms {
 		room.HotelID = insertedHotel.ID
-		insertedRoom, err := roomStore.InsertRoom(ctx, &room)
+		_, err := roomStore.InsertRoom(ctx, &room)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("inserted room:", insertedRoom)
 	}
-
-	counter++
 }
 
 func seedUser(firstName, lastName, email string) {
@@ -73,13 +66,11 @@ func seedUser(firstName, lastName, email string) {
 		log.Fatal(err)
 	}
 
-	insertedUser, err := userStore.InsertUser(ctx, user)
+	_, err = userStore.InsertUser(ctx, user)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("inserted user is %+v", insertedUser)
 }
 
 func main() {
@@ -92,7 +83,6 @@ func main() {
 }
 
 func init() {
-	counter = 1
 	var err error
 	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
 	if err != nil {
