@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/Admiral-Simo/HotelReserver/types"
@@ -19,6 +20,22 @@ func NewUserHandler(userStore db.UserStore) *UserHandler {
 	return &UserHandler{
 		userStore: userStore,
 	}
+}
+
+type AuthParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (h *UserHandler) HandleAuth(c *fiber.Ctx) error {
+	var aParams AuthParams
+	if err := c.BodyParser(&aParams); err != nil {
+		return err
+	}
+
+	fmt.Println(aParams)
+
+	return nil
 }
 
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
