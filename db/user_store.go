@@ -56,6 +56,7 @@ func (s *MongoUserStore) GetUsers(ctx context.Context) ([]*types.User, error) {
 	if err != nil {
 		return nil, err
 	}
+    defer cur.Close(ctx)
 	var users []*types.User
 	if err := cur.All(ctx, &users); err != nil {
 		return nil, err
