@@ -2,8 +2,11 @@ package types
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
@@ -63,6 +66,29 @@ func (params *CreateUserParams) Valide() map[string]string {
 		return nil
 	}
 	return errs
+}
+
+func IsValidPassword(encpw, pw string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(encpw), []byte(pw)) == nil
+}
+
+func CreateTokenFromUser(user *User) string {
+	now := time.Now()
+	expires := now.Add(time.Hour * 24)
+	claims := jwt.MapClaims{
+		"id":      user.ID,
+		"email":   user.Email,
+		"expires": expires,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims, nil)
+	secret := os.Getenv("JWT_SECRET")
+	fmt.Println("secret:", secret)
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		fmt.Println("failed to sign token with secret", err)
+	}
+	return tokenString
 }
 
 func isEmailValid(e string) bool {
