@@ -9,6 +9,7 @@ import (
 	"github.com/Admiral-Simo/HotelReserver/api/middleware"
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -24,6 +25,11 @@ var config = fiber.Config{
 func main() {
 	listenAddr := flag.String("listenAddr", ":8080", "The listen address of the API server")
 	flag.Parse()
+
+	// load envirement variables
+	if err := godotenv.Load(".env"); err != nil {
+        log.Fatal("couldn't load envirement variables")
+    }
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
 	if err != nil {
