@@ -2,7 +2,7 @@ package api
 
 import (
 	"errors"
-	"fmt"
+	"net/http"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/Admiral-Simo/HotelReserver/types"
@@ -30,11 +30,23 @@ type AuthResponse struct {
 	Token string      `json:"token"`
 }
 
+type genericResponse struct {
+	Type string `json:"type"`
+	Msg  string `json:"msg"`
+}
+
+func invalidCredentials(c *fiber.Ctx) error {
+	return c.Status(http.StatusBadRequest).JSON(genericResponse{
+		Type: "error",
+		Msg:  "invalid credentials",
+	})
+}
+
 // A handler should only do:
 //   - serialization of the incoming request (JSON)
 //   - do some data fetching from db
 //   - call some business logic
-//   - return the data back the user
+//   - return the data back to the user
 func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	var aParams AuthParams
 	if err := c.BodyParser(&aParams); err != nil {
@@ -44,13 +56,13 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	user, err := h.userStore.GetUserByEmail(c.Context(), aParams.Email)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return fmt.Errorf("invalid credentials")
+			return invalidCredentials(c)
 		}
 		return err
 	}
 
 	if !types.IsValidPassword(user.EncryptedPassword, aParams.Password) {
-		return fmt.Errorf("invalid credentials")
+		return invalidCredentials(c)
 	}
 
 	// TODO: store jwt token into the User HEADER
