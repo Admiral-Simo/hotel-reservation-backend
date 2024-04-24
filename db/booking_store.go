@@ -19,6 +19,7 @@ type BookingStore interface {
 
 	InsertBooking(context.Context, *types.Booking) (*types.Booking, error)
 	GetBookings(context.Context, bson.M) ([]*types.Booking, error)
+	GetBookingById(ctx context.Context, id string) (*types.Booking, error)
 	IsRoomAvailableForBooking(context.Context, *types.BookRoomParams, primitive.ObjectID) (bool, error)
 }
 
@@ -82,4 +83,17 @@ func (s *MongoBookStore) IsRoomAvailableForBooking(ctx context.Context, newBooki
 	}
 
 	return count == 0, nil
+}
+
+func (s *MongoBookStore) GetBookingById(ctx context.Context, id string) (*types.Booking, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	var booking *types.Booking
+	filter := bson.M{"_id": oid}
+	if err := s.coll.FindOne(ctx, filter).Decode(&booking); err != nil {
+		return nil, err
+	}
+	return booking, nil
 }
