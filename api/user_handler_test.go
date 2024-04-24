@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -30,7 +33,7 @@ func setup(t *testing.T) *testdb {
 		t.Fatal(err)
 	}
 	return &testdb{
-		UserStore: db.NewMongoUserStore(client, db.TestDBNAME),
+		UserStore: db.NewMongoUserStore(client),
 	}
 
 }
@@ -63,18 +66,22 @@ func TestPostUser(t *testing.T) {
 	var user types.User
 	json.NewDecoder(resp.Body).Decode(&user)
 	if len(user.ID) == 0 {
-		t.Error("expecting a user id to be set")
+		t.Fatal("expecting a user id to be set")
 	}
 	if len(user.EncryptedPassword) > 0 {
-		t.Error("expected the EncryptedPassword not to be included in the json response")
+		t.Fatal("expected the EncryptedPassword not to be included in the json response")
 	}
-	if user.FirstName != params.FirstName {
-		t.Errorf("expected firstname  %s but got %s", params.FirstName, user.FirstName)
+
+	user.EncryptedPassword = ""
+	if reflect.DeepEqual(user, params) {
+		t.Fatalf("expected user '%v' but got '%v'", params, user)
 	}
-	if user.LastName != params.LastName {
-		t.Errorf("expected lastname  %s but got %s", params.LastName, user.LastName)
+}
+
+func init() {
+	// load envirement variables
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatal("couldn't load envirement variables")
 	}
-	if user.Email != params.Email {
-		t.Errorf("expected email  %s but got %s", params.Email, user.Email)
-	}
+
 }
