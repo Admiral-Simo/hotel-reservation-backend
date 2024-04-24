@@ -19,6 +19,7 @@ type RoomStore interface {
 
 	InsertRoom(context.Context, *types.Room) (*types.Room, error)
 	GetRooms(ctx context.Context, filter bson.M) ([]*types.Room, error)
+	GetRoomById(ctx context.Context, id primitive.ObjectID) (*types.Room, error)
 }
 
 type MongoRoomStore struct {
@@ -36,9 +37,13 @@ func NewMongoRoomStore(client *mongo.Client, hotelStore HotelStore) *MongoRoomSt
 	}
 }
 
-func (s *MongoRoomStore) Drop(ctx context.Context) error {
-	fmt.Println("--- dropping rooms collection")
-	return s.coll.Drop(ctx)
+func (s *MongoRoomStore) GetRoomById(ctx context.Context, id primitive.ObjectID) (*types.Room, error) {
+	var result *types.Room
+	filter := bson.M{"_id": id}
+	if err := s.coll.FindOne(ctx, filter).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (s *MongoRoomStore) InsertRoom(ctx context.Context, room *types.Room) (*types.Room, error) {
@@ -64,9 +69,15 @@ func (s *MongoRoomStore) GetRooms(ctx context.Context, filter bson.M) ([]*types.
 	if err != nil {
 		return nil, err
 	}
+	defer cur.Close(ctx)
 	var rooms []*types.Room
 	if err = cur.All(ctx, &rooms); err != nil {
 		return nil, err
 	}
 	return rooms, nil
+}
+
+func (s *MongoRoomStore) Drop(ctx context.Context) error {
+	fmt.Println("--- dropping rooms collection")
+	return s.coll.Drop(ctx)
 }
