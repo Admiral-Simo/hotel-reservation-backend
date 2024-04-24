@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
+	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthHandler struct {
@@ -25,6 +25,16 @@ type AuthParams struct {
 	Password string `json:"password"`
 }
 
+type AuthResponse struct {
+	User  *types.User `json:"user"`
+	Token string      `json:"token"`
+}
+
+// A handler should only do:
+//   - serialization of the incoming request (JSON)
+//   - do some data fetching from db
+//   - call some business logic
+//   - return the data back the user
 func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	var aParams AuthParams
 	if err := c.BodyParser(&aParams); err != nil {
@@ -39,12 +49,15 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 		return err
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(aParams.Password)); err != nil {
+	if !types.IsValidPassword(user.EncryptedPassword, aParams.Password) {
 		return fmt.Errorf("invalid credentials")
 	}
 
-    // TODO: store jwt token into the User HEADER
-	fmt.Println("authenticated ->", user)
+	// TODO: store jwt token into the User HEADER
+	resp := AuthResponse{
+		User:  user,
+		Token: types.CreateTokenFromUser(user),
+	}
 
-	return nil
+	return c.JSON(resp)
 }
