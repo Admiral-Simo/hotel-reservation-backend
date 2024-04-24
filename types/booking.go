@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,18 +22,24 @@ type BookRoomParams struct {
 	NumPersons int       `json:"numPersons"`
 }
 
-{
-    "fromDate": "",
-    "tillDate": "",
-    "numPersons": 2
-}
-
-func (c *BookRoomParams) CreateBooking(userID, roomID primitive.ObjectID) *Booking {
+func (p *BookRoomParams) CreateBooking(userID, roomID primitive.ObjectID) *Booking {
 	return &Booking{
 		UserID:     userID,
 		RoomID:     roomID,
-		NumPersons: c.NumPersons,
-		FromDate:   c.FromDate,
-		TillDate:   c.TillDate,
+		NumPersons: p.NumPersons,
+		FromDate:   p.FromDate,
+		TillDate:   p.TillDate,
 	}
+}
+
+func (p *BookRoomParams) Validate() error {
+	now := time.Now()
+	if p.FromDate.Before(now) {
+		return fmt.Errorf("cannot book a room in the past")
+	}
+	duration := p.TillDate.Sub(p.FromDate)
+	if duration < 24*time.Hour {
+		return fmt.Errorf("invalid booking duration: should be at least one day")
+	}
+	return nil
 }
