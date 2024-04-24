@@ -83,7 +83,6 @@ func CreateTokenFromUser(user *User) string {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims, nil)
 	secret := os.Getenv("JWT_SECRET")
-	fmt.Println("secret:", secret)
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		fmt.Println("failed to sign token with secret", err)
