@@ -5,36 +5,47 @@ import (
 	"os"
 	"time"
 
+	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func JWTAuthentication(c *fiber.Ctx) error {
-	tokens, ok := c.GetReqHeaders()["X-Api-Token"]
+func JWTAuthentication(userStore db.UserStore) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tokens, ok := c.GetReqHeaders()["X-Api-Token"]
 
-	tokenString := tokens[0]
+		tokenString := tokens[0]
 
-	if !ok {
-		return fmt.Errorf("unauthorized")
+		if !ok {
+			return fmt.Errorf("unauthorized")
+		}
+
+		claims, err := validateToken(tokenString)
+
+		if err != nil {
+			return err
+		}
+
+		expires, err := time.Parse(time.RFC3339, claims["expires"].(string))
+
+		if err != nil {
+			return fmt.Errorf("unauthorized")
+		}
+
+		if time.Now().After(expires) {
+			return fmt.Errorf("token expired")
+		}
+
+		// userID is globally accesible in every handler
+		userID := claims["id"].(string)
+		user, err := userStore.GetUserById(c.Context(), userID)
+		if err != nil {
+			return fmt.Errorf("unauthorized")
+		}
+		// Set the current authenticated user to the context value
+		c.Context().SetUserValue("user", user)
+		return c.Next()
 	}
-
-	claims, err := validateToken(tokenString)
-
-	if err != nil {
-		return err
-	}
-
-	expires, err := time.Parse(time.RFC3339, claims["expires"].(string))
-
-	if err != nil {
-		return fmt.Errorf("unauthorized")
-	}
-
-	if time.Now().After(expires) {
-		return fmt.Errorf("token expired")
-	}
-
-	return c.Next()
 }
 
 func validateToken(tokenStr string) (jwt.MapClaims, error) {
@@ -45,7 +56,6 @@ func validateToken(tokenStr string) (jwt.MapClaims, error) {
 		}
 
 		secret := os.Getenv("JWT_SECRET")
-		fmt.Println("Never print a secret for debuging", secret)
 
 		return []byte(secret), nil
 	})
