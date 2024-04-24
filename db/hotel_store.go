@@ -36,7 +36,7 @@ func NewMongoHotelStore(client *mongo.Client) *MongoHotelStore {
 }
 
 func (s *MongoHotelStore) Drop(ctx context.Context) error {
-	fmt.Println("--- dropping hotell collection")
+	fmt.Println("--- dropping hotel collection")
 	return s.coll.Drop(ctx)
 }
 
@@ -62,6 +62,7 @@ func (s *MongoHotelStore) GetHotels(ctx context.Context, filter bson.M) ([]*type
 	if err != nil {
 		return nil, err
 	}
+    defer cur.Close(ctx)
 	var hotels []*types.Hotel
 	if err := cur.All(ctx, &hotels); err != nil {
 		return nil, err
