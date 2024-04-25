@@ -58,20 +58,17 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		return err
 	}
 
-	user, ok := c.Context().Value("user").(*types.User)
+	user, err := getAuthUser(c)
 
-	if !ok {
-		return c.Status(http.StatusInternalServerError).JSON(genericResponse{
-			Type: "error",
-			Msg:  "Internal server error",
-		})
+	if err != nil {
+		return err
 	}
 
 	if err = params.Validate(); err != nil {
 		return err
 	}
 
-	ok, err = h.store.Booking.IsRoomAvailableForBooking(c.Context(), params, roomOID)
+	ok, err := h.store.Booking.IsRoomAvailableForBooking(c.Context(), params, roomOID)
 	if err != nil {
 		return err
 	}

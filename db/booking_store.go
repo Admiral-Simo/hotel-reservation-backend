@@ -21,6 +21,7 @@ type BookingStore interface {
 	GetBookings(context.Context, bson.M) ([]*types.Booking, error)
 	GetBookingById(ctx context.Context, id string) (*types.Booking, error)
 	IsRoomAvailableForBooking(context.Context, *types.BookRoomParams, primitive.ObjectID) (bool, error)
+	UpdateBookingById(ctx context.Context, id string, update bson.M) error
 }
 
 type MongoBookStore struct {
@@ -96,4 +97,13 @@ func (s *MongoBookStore) GetBookingById(ctx context.Context, id string) (*types.
 		return nil, err
 	}
 	return booking, nil
+}
+
+func (s *MongoBookStore) UpdateBookingById(ctx context.Context, id string, update bson.M) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.coll.UpdateByID(ctx, oid, update)
+	return err
 }

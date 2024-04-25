@@ -56,7 +56,7 @@ func (s *MongoUserStore) GetUsers(ctx context.Context) ([]*types.User, error) {
 	if err != nil {
 		return nil, err
 	}
-    defer cur.Close(ctx)
+	defer cur.Close(ctx)
 	var users []*types.User
 	if err := cur.All(ctx, &users); err != nil {
 		return nil, err
@@ -78,12 +78,8 @@ func (s *MongoUserStore) GetUserById(ctx context.Context, id string) (*types.Use
 }
 
 func (s *MongoUserStore) UpdateUser(ctx context.Context, filter bson.M, params types.UpdateUserParams) error {
-	values, err := params.ToBSON()
-	if err != nil {
-		return err
-	}
-	update := bson.M{"$set": values}
-	_, err = s.coll.UpdateOne(ctx, filter, update)
+	update := bson.M{"$set": params}
+	_, err := s.coll.UpdateOne(ctx, filter, update)
 	return err
 }
 

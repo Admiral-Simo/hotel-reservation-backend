@@ -46,6 +46,7 @@ type CreateUserParams struct {
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
+	IsAdmin   bool
 }
 
 func (params *CreateUserParams) Valide() map[string]string {
@@ -114,5 +115,6 @@ func NewUserFromParams(params CreateUserParams) (*User, error) {
 		LastName:          params.LastName,
 		Email:             params.Email,
 		EncryptedPassword: string(encpw),
+		IsAdmin: params.IsAdmin,
 	}, nil
 }

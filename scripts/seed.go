@@ -55,12 +55,13 @@ func seedHotel(name, location string, rating float32) {
 	}
 }
 
-func seedUser(firstName, lastName, email string) {
+func seedUser(firstName, lastName, email string, isAdmin bool) {
 	user, err := types.NewUserFromParams(types.CreateUserParams{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
 		Password:  "supersecurepassword",
+		IsAdmin:   isAdmin,
 	})
 
 	if err != nil {
@@ -78,9 +79,9 @@ func main() {
 	seedHotel("Royal Mansour", "Marrakech Morocco", 3)
 	seedHotel("Mazagan Beach Resort", "Casablanca", 4)
 	seedHotel("Dont die in your seleep", "London", 1.5)
-	seedUser("Mohamed", "Khalis", "personalsimoypo@gmail.com")
-	seedUser("Toufik", "Khalis", "toufikhalis@gmail.com")
-	seedUser("Driss", "El Haskouri", "drisshaskouri@gmail.com")
+	seedUser("Mohamed", "Khalis", "personalsimoypo@gmail.com", true)
+	seedUser("Toufik", "Khalis", "toufikhalis@gmail.com", false)
+	seedUser("Driss", "El Haskouri", "drisshaskouri@gmail.com", false)
 }
 
 func init() {
@@ -96,7 +97,6 @@ func init() {
 	if err != nil {
 		log.Fatalf("failed to drop %s: %s", db.DBNAME, err)
 	}
-
 	userStore = db.NewMongoUserStore(client)
 	hotelStore = db.NewMongoHotelStore(client)
 	roomStore = db.NewMongoRoomStore(client, hotelStore)

@@ -1,9 +1,6 @@
 package api
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
@@ -20,7 +17,7 @@ func NewBookingHandler(store *db.Store) *BookingHandler {
 	}
 }
 
-// TODO: this needs to be admin authorized!
+// this needs to be admin authorized!
 func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
 	bookings, err := h.store.Booking.GetBookings(c.Context(), bson.M{})
 	if err != nil {
@@ -32,22 +29,44 @@ func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
 	return c.JSON(bookings)
 }
 
-// TODO: this needs to be user authorized
+// this needs to be user authorized
 func (h *BookingHandler) HandleGetBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
 	booking, err := h.store.Booking.GetBookingById(c.Context(), id)
 	if err != nil {
 		return err
 	}
-	user, ok := c.Context().UserValue("user").(*types.User)
-	if !ok {
-		return fmt.Errorf("Internal server error")
+	user, err := getAuthUser(c)
+	if err != nil {
+		return err
 	}
-	if booking.UserID != user.ID && !user.IsAdmin {
-		return c.Status(http.StatusUnauthorized).JSON(genericResponse{
-			Type: "error",
-			Msg:  "unauthorized",
-		})
+	if err := checkBookingAuth(c, booking, user); err != nil {
+		return err
 	}
+	// TODO: update booking.Canceled = true
 	return c.JSON(booking)
+}
+
+// this needs to be user authorized
+func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
+	id := c.Params("id")
+	booking, err := h.store.Booking.GetBookingById(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	user, err := getAuthUser(c)
+	if err != nil {
+		return err
+	}
+	if err := checkBookingAuth(c, booking, user); err != nil {
+		return err
+	}
+    update := bson.M{"$set": bson.M{"canceled": true}}
+	if err := h.store.Booking.UpdateBookingById(c.Context(), id, update); err != nil {
+		return err
+	}
+	return c.JSON(genericResponse{
+		Type: "success",
+		Msg:  "booking canceled successfuly",
+	})
 }
