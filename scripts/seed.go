@@ -2,86 +2,38 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
+	"github.com/Admiral-Simo/HotelReserver/db/fixtures"
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
-	client     *mongo.Client
-	hotelStore db.HotelStore
-	roomStore  db.RoomStore
-	userStore  db.UserStore
-	ctx        = context.Background()
+	client       *mongo.Client
+	hotelStore   db.HotelStore
+	roomStore    db.RoomStore
+	userStore    db.UserStore
+	bookingStore db.BookingStore
+	ctx          = context.Background()
+	store        *db.Store
 )
 
-func seedHotel(name, location string, rating float32) {
-	hotel := &types.Hotel{
-		Name:     name,
-		Location: location,
-		Rating:   rating,
-	}
-
-	insertedHotel, err := hotelStore.InsertHotel(ctx, hotel)
-	if err != nil {
-		log.Fatal("couldn't insert hotel:", err)
-	}
-
-	rooms := []types.Room{
-		{
-			Size:    "small",
-			SeaSide: true,
-			Price:   99.9,
-		},
-		{
-			Size:  "medium",
-			Price: 1999.9,
-		},
-		{
-			Size:  "large",
-			Price: 299.9,
-		},
-	}
-
-	for _, room := range rooms {
-		room.HotelID = insertedHotel.ID
-		_, err := roomStore.InsertRoom(ctx, &room)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
-func seedUser(firstName, lastName, email string, isAdmin bool) {
-	user, err := types.NewUserFromParams(types.CreateUserParams{
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
-		Password:  "supersecurepassword",
-		IsAdmin:   isAdmin,
-	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = userStore.InsertUser(ctx, user)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func main() {
-	seedHotel("Royal Mansour", "Marrakech Morocco", 3)
-	seedHotel("Mazagan Beach Resort", "Casablanca", 4)
-	seedHotel("Dont die in your seleep", "London", 1.5)
-	seedUser("Mohamed", "Khalis", "personalsimoypo@gmail.com", true)
-	seedUser("Toufik", "Khalis", "toufikhalis@gmail.com", false)
-	seedUser("Driss", "El Haskouri", "drisshaskouri@gmail.com", false)
+	user := fixtures.AddUser(store, "foo", "bar", false)
+	fmt.Println("james -> ", types.CreateTokenFromUser(user))
+	admin := fixtures.AddUser(store, "admin", "admin", true)
+	fmt.Println("admin -> ", types.CreateTokenFromUser(admin))
+	hotel := fixtures.AddHotel(store, "tazrkount", "marrakesh ", 3.2, nil)
+	room := fixtures.AddRoom(store, "medium", true, 199.99, hotel.ID)
+	from := time.Now().AddDate(0, 0, 1)
+	till := from.AddDate(0, 0, 4)
+	booking := fixtures.AddBooking(store, user.ID, room.ID, from, till, 2)
+	fmt.Println("booking ->", booking.ID)
 }
 
 func init() {
@@ -100,4 +52,11 @@ func init() {
 	userStore = db.NewMongoUserStore(client)
 	hotelStore = db.NewMongoHotelStore(client)
 	roomStore = db.NewMongoRoomStore(client, hotelStore)
+	bookingStore = db.NewMongoBookStore(client)
+	store = &db.Store{
+		User:    userStore,
+		Booking: bookingStore,
+		Room:    roomStore,
+		Hotel:   hotelStore,
+	}
 }

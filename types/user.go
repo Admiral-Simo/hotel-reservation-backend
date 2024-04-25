@@ -74,8 +74,8 @@ func IsValidPassword(encpw, pw string) bool {
 }
 
 func CreateTokenFromUser(user *User) string {
-	now := time.Now()
-	expires := now.Add(time.Hour * 24)
+	expires := time.Now().Add(time.Hour * 24)
+
 	claims := jwt.MapClaims{
 		"id":      user.ID,
 		"email":   user.Email,
@@ -115,6 +115,6 @@ func NewUserFromParams(params CreateUserParams) (*User, error) {
 		LastName:          params.LastName,
 		Email:             params.Email,
 		EncryptedPassword: string(encpw),
-		IsAdmin: params.IsAdmin,
+		IsAdmin:           params.IsAdmin,
 	}, nil
 }

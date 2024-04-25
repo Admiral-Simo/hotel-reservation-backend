@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,45 +9,23 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Admiral-Simo/HotelReserver/db"
-	"github.com/Admiral-Simo/HotelReserver/types"
+	"github.com/Admiral-Simo/HotelReserver/db/fixtures"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
-
-func insertTestUser(t *testing.T, userStore db.UserStore) *types.User {
-	user, err := types.NewUserFromParams(types.CreateUserParams{
-		FirstName: "Driss",
-		LastName:  "El Haskouri",
-		Email:     "drisshaskouri@gmail.com",
-		Password:  "supersecurepassword",
-	})
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = userStore.InsertUser(context.TODO(), user)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return user
-}
 
 func TestAuthenticateAuthenticateWithWrongCredentials(t *testing.T) {
 	tdb := setup(t)
 	defer tdb.teardown(t)
 
-	insertTestUser(t, tdb.UserStore)
+	fixtures.AddUser(tdb.Store, "mohamed", "khalis", false)
 
 	app := fiber.New()
-	authHandler := NewAuthHandler(tdb.UserStore)
+	authHandler := NewAuthHandler(tdb.User)
 	app.Post("/auth", authHandler.HandleAuthenticate)
 
 	params := AuthParams{
-		Email:    "drisshaskouri@gmail.com",
+		Email:    "mohamed@khalis.com",
 		Password: "wrong password",
 	}
 
@@ -85,15 +62,15 @@ func TestAuthenticateSuccess(t *testing.T) {
 	tdb := setup(t)
 	defer tdb.teardown(t)
 
-	insertedUser := insertTestUser(t, tdb.UserStore)
+	insertedUser := fixtures.AddUser(tdb.Store, "mohamed", "khalis", false)
 
 	app := fiber.New()
-	authHandler := NewAuthHandler(tdb.UserStore)
+	authHandler := NewAuthHandler(tdb.User)
 	app.Post("/auth", authHandler.HandleAuthenticate)
 
 	params := AuthParams{
-		Email:    "drisshaskouri@gmail.com",
-		Password: "supersecurepassword",
+		Email:    "mohamed@khalis.com",
+		Password: "mohamed_khalis",
 	}
 
 	b, _ := json.Marshal(params)
