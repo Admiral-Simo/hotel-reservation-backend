@@ -38,6 +38,7 @@ func TestAuthenticateAuthenticateWithWrongCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+    defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected http status of %d but got %d", http.StatusBadRequest, resp.StatusCode)
