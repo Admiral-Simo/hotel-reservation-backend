@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
@@ -30,13 +31,14 @@ func TestPostUser(t *testing.T) {
 
 	b, _ := json.Marshal(params)
 
-	req := httptest.NewRequest("POST", "/user", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPost, "/user", bytes.NewReader(b))
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
 	if err != nil {
 		t.Error(err)
 	}
+    defer resp.Body.Close()
 
 	var user types.User
 	json.NewDecoder(resp.Body).Decode(&user)
