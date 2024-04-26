@@ -24,15 +24,18 @@ var (
 )
 
 func main() {
-	user := fixtures.AddUser(store, "foo", "bar", false)
-	fmt.Println("james -> ", types.CreateTokenFromUser(user))
-	admin := fixtures.AddUser(store, "admin", "admin", true)
-	fmt.Println("admin -> ", types.CreateTokenFromUser(admin))
-	hotel := fixtures.AddHotel(store, "tazrkount", "marrakesh ", 3.2, nil)
-	room := fixtures.AddRoom(store, "medium", true, 199.99, hotel.ID)
-	from := time.Now().AddDate(0, 0, 1)
-	till := from.AddDate(0, 0, 4)
-	booking := fixtures.AddBooking(store, user.ID, room.ID, from, till, 2)
+    var (
+
+        user = fixtures.AddUser(store, "foo", "bar", false)
+        admin = fixtures.AddUser(store, "admin", "admin", true)
+        hotel = fixtures.AddHotel(store, "tazrkount", "marrakesh ", 3.2, nil)
+        room = fixtures.AddRoom(store, "medium", true, 199.99, hotel.ID)
+        from = time.Now().AddDate(0, 0, 1)
+        till = from.AddDate(0, 0, 4)
+        booking = fixtures.AddBooking(store, user.ID, room.ID, from, till, 2)
+    )
+    fmt.Println("admin -> ", types.CreateTokenFromUser(admin))
+    fmt.Println("james -> ", types.CreateTokenFromUser(user))
 	fmt.Println("booking ->", booking.ID)
 }
 
