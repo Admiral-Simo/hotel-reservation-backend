@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Admiral-Simo/HotelReserver/api"
-	"github.com/Admiral-Simo/HotelReserver/api/middleware"
+	"github.com/Admiral-Simo/HotelReserver/middleware"
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -17,10 +17,15 @@ import (
 
 var config = fiber.Config{
 	ErrorHandler: func(c *fiber.Ctx, err error) error {
-		if apiError, ok := err.(*api.Error); ok {
+		var (
+			apiError *api.Error
+			ok       bool
+		)
+		if apiError, ok = err.(*api.Error); ok {
 			return c.Status(apiError.Code).JSON(apiError)
 		}
-		return api.NewError(http.StatusInternalServerError, err.Error())
+		apiError = api.NewError(http.StatusInternalServerError, err.Error())
+		return c.Status(apiError.Code).JSON(apiError)
 	},
 }
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Admiral-Simo/HotelReserver/api"
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -17,13 +18,13 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 		claims, err := validateToken(tokenString)
 
 		if err != nil {
-			return err
+			return api.ErrUnAuthorized()
 		}
 
 		expires, err := time.Parse(time.RFC3339, claims["expires"].(string))
 
 		if err != nil {
-			return fmt.Errorf("unauthorized")
+			return api.ErrUnAuthorized()
 		}
 
 		if time.Now().After(expires) {
@@ -34,7 +35,7 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 		userID := claims["id"].(string)
 		user, err := userStore.GetUserById(c.Context(), userID)
 		if err != nil {
-			return fmt.Errorf("unauthorized")
+			return api.ErrUnAuthorized()
 		}
 		// Set the current authenticated user to the context value
 		c.Context().SetUserValue("user", user)
