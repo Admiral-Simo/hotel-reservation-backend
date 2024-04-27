@@ -1,6 +1,10 @@
 package api
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 type Error struct {
 	Code int    `json:"code"`
@@ -16,6 +20,18 @@ func NewError(code int, err string) *Error {
 		Code: code,
 		Err:  err,
 	}
+}
+
+func ErrorHandler(c *fiber.Ctx, err error) error {
+	var (
+		apiError *Error
+		ok       bool
+	)
+	if apiError, ok = err.(*Error); ok {
+		return c.Status(apiError.Code).JSON(apiError)
+	}
+	apiError = NewError(http.StatusInternalServerError, "internal server error")
+	return c.Status(apiError.Code).JSON(apiError)
 }
 
 func ErrUnAuthorized() *Error {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"net/http"
 
 	"github.com/Admiral-Simo/HotelReserver/api"
 	"github.com/Admiral-Simo/HotelReserver/db"
@@ -15,18 +14,7 @@ import (
 )
 
 var config = fiber.Config{
-	ErrorHandler: func(c *fiber.Ctx, err error) error {
-		var (
-			apiError *api.Error
-			ok       bool
-		)
-		if apiError, ok = err.(*api.Error); ok {
-			return c.Status(apiError.Code).JSON(apiError)
-		}
-		apiError = api.NewError(http.StatusInternalServerError, err.Error())
-		apiError.Err = "internal server error"
-		return c.Status(apiError.Code).JSON(apiError)
-	},
+	ErrorHandler: api.ErrorHandler,
 }
 
 func main() {
