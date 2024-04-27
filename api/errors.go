@@ -19,9 +19,17 @@ func NewError(code int, err string) *Error {
 }
 
 func ErrUnAuthorized() *Error {
-	return NewError(http.StatusUnauthorized, "unauthorized")
+	return NewError(http.StatusUnauthorized, "unauthorized request")
 }
 
 func ErrInvalidId() *Error {
 	return NewError(http.StatusBadRequest, "invalid id given")
+}
+
+func ErrBadRequest() *Error {
+	return NewError(http.StatusBadRequest, "invalid JSON request")
+}
+
+func ErrNotFound(resource string) *Error {
+	return NewError(http.StatusNotFound, resource+" not found")
 }
