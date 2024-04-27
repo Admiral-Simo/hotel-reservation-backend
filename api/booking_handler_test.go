@@ -70,8 +70,8 @@ func TestUserGetBooking(t *testing.T) {
 		t.Fatal("couldn't perform request", err)
 	}
 
-	if resp.StatusCode == http.StatusOK {
-		t.Fatal("expected non 200 status code")
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("expected %d status code got %d", http.StatusUnauthorized, resp.StatusCode)
 	}
 }
 
@@ -87,7 +87,7 @@ func TestGetBookings(t *testing.T) {
 		from           = time.Now().AddDate(0, 0, 1)
 		till           = from.AddDate(0, 0, 2)
 		booking        = fixtures.AddBooking(tdb.Store, user.ID, room.ID, from, till, 2)
-		app            = fiber.New()
+		app            = fiber.New(fiber.Config{ErrorHandler: ErrorHandler})
 		bookingHandler = NewBookingHandler(tdb.Store)
 	)
 
@@ -143,7 +143,7 @@ func TestGetBookings(t *testing.T) {
 		t.Fatalf("failed to perform request %v", err)
 	}
 
-	if resp.StatusCode == http.StatusOK {
-		t.Fatal("expected non 200 status code")
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("expected %d status code got %d", http.StatusUnauthorized, resp.StatusCode)
 	}
 }
