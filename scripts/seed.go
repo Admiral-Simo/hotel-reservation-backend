@@ -28,7 +28,7 @@ func main() {
 
         user = fixtures.AddUser(store, "foo", "bar", false)
         admin = fixtures.AddUser(store, "admin", "admin", true)
-        hotel = fixtures.AddHotel(store, "tazrkount", "marrakesh ", 3.2, nil)
+        hotel = fixtures.AddHotel(store, "tazrkount", "Beni-Mellal Afourar", 3.2, nil)
         room = fixtures.AddRoom(store, "medium", true, 199.99, hotel.ID)
         from = time.Now().AddDate(0, 0, 1)
         till = from.AddDate(0, 0, 4)
