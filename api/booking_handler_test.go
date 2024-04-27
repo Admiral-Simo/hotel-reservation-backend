@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Admiral-Simo/HotelReserver/api/middleware"
 	"github.com/Admiral-Simo/HotelReserver/db/fixtures"
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
@@ -31,7 +30,7 @@ func TestUserGetBooking(t *testing.T) {
 	)
 
 	// middelewares
-	app.Use(middleware.JWTAuthentication(tdb.User))
+	app.Use(JWTAuthentication(tdb.User))
 
 	// adding route
 	app.Get("/:id", bookingHandler.HandleGetBooking)
@@ -93,8 +92,8 @@ func TestGetBookings(t *testing.T) {
 	)
 
 	// middelewares
-	app.Use(middleware.JWTAuthentication(tdb.User))
-	app.Use(middleware.AdminAuth)
+	app.Use(JWTAuthentication(tdb.User))
+	app.Use(AdminAuth)
 
 	// adding route
 	app.Get("/", bookingHandler.HandleGetBookings)

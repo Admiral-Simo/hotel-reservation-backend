@@ -21,7 +21,7 @@ func NewBookingHandler(store *db.Store) *BookingHandler {
 func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
 	bookings, err := h.store.Booking.GetBookings(c.Context(), bson.M{})
 	if err != nil {
-		return err
+		return ErrNotFound("users")
 	}
 	if bookings == nil {
 		return c.JSON([]types.Booking{})
@@ -34,14 +34,14 @@ func (h *BookingHandler) HandleGetBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
 	booking, err := h.store.Booking.GetBookingById(c.Context(), id)
 	if err != nil {
-		return err
+		return ErrNotFound("booking")
 	}
 	user, err := getAuthUser(c)
 	if err != nil {
-		return err
+		return ErrUnAuthorized()
 	}
 	if err := checkBookingAuth(c, booking, user); err != nil {
-		return err
+		return ErrUnAuthorized()
 	}
 	// TODO: update booking.Canceled = true
 	return c.JSON(booking)
@@ -52,16 +52,16 @@ func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
 	booking, err := h.store.Booking.GetBookingById(c.Context(), id)
 	if err != nil {
-		return err
+		return ErrNotFound("booking")
 	}
 	user, err := getAuthUser(c)
 	if err != nil {
-		return err
+		return ErrUnAuthorized()
 	}
 	if err := checkBookingAuth(c, booking, user); err != nil {
-		return err
+		return ErrUnAuthorized()
 	}
-    update := bson.M{"$set": bson.M{"canceled": true}}
+	update := bson.M{"$set": bson.M{"canceled": true}}
 	if err := h.store.Booking.UpdateBookingById(c.Context(), id, update); err != nil {
 		return err
 	}

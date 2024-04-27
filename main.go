@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/Admiral-Simo/HotelReserver/api"
-	"github.com/Admiral-Simo/HotelReserver/middleware"
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -25,6 +24,7 @@ var config = fiber.Config{
 			return c.Status(apiError.Code).JSON(apiError)
 		}
 		apiError = api.NewError(http.StatusInternalServerError, err.Error())
+		apiError.Err = "internal server error"
 		return c.Status(apiError.Code).JSON(apiError)
 	},
 }
@@ -64,8 +64,8 @@ func main() {
 		bookingHandler = api.NewBookingHandler(store)
 		app            = fiber.New(config)
 		auth           = app.Group("/api")
-		apiv1          = app.Group("/api/v1", middleware.JWTAuthentication(userStore))
-		admin          = apiv1.Group("/admin", middleware.AdminAuth)
+		apiv1          = app.Group("/api/v1", api.JWTAuthentication(userStore))
+		admin          = apiv1.Group("/admin", api.AdminAuth)
 	)
 
 	// auth

@@ -1,11 +1,10 @@
-package middleware
+package api
 
 import (
-	"fmt"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/Admiral-Simo/HotelReserver/api"
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -18,24 +17,24 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 		claims, err := validateToken(tokenString)
 
 		if err != nil {
-			return api.ErrUnAuthorized()
+			return ErrUnAuthorized()
 		}
 
 		expires, err := time.Parse(time.RFC3339, claims["expires"].(string))
 
 		if err != nil {
-			return api.ErrUnAuthorized()
+			return ErrUnAuthorized()
 		}
 
 		if time.Now().After(expires) {
-			return fmt.Errorf("token expired")
+			return NewError(http.StatusUnauthorized, "token expired")
 		}
 
 		// userID is globally accesible in every handler
 		userID := claims["id"].(string)
 		user, err := userStore.GetUserById(c.Context(), userID)
 		if err != nil {
-			return api.ErrUnAuthorized()
+			return ErrUnAuthorized()
 		}
 		// Set the current authenticated user to the context value
 		c.Context().SetUserValue("user", user)
@@ -46,8 +45,7 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 func validateToken(tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			fmt.Println("Invalid signing method", token.Header["alg"])
-			return nil, fmt.Errorf("unauthorized")
+			return nil, ErrUnAuthorized()
 		}
 
 		secret := os.Getenv("JWT_SECRET")
@@ -56,19 +54,17 @@ func validateToken(tokenStr string) (jwt.MapClaims, error) {
 	})
 
 	if err != nil {
-		fmt.Println("failed to parse JWT token:", err)
-		return nil, fmt.Errorf("unauthorized")
+		return nil, ErrUnAuthorized()
 	}
 
 	if !token.Valid {
-		fmt.Println("invalid token:", err)
-		return nil, fmt.Errorf("unauthorized")
+		return nil, ErrUnAuthorized()
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 
 	if !ok {
-		return nil, fmt.Errorf("unauthorized")
+		return nil, ErrUnAuthorized()
 	}
 
 	return claims, nil
