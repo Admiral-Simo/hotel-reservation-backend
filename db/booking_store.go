@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -18,7 +19,7 @@ type BookingStore interface {
 	Dropper
 
 	InsertBooking(context.Context, *types.Booking) (*types.Booking, error)
-	GetBookings(context.Context, bson.M) ([]*types.Booking, error)
+	GetBookings(context.Context, bson.M, *options.FindOptions) ([]*types.Booking, error)
 	GetBookingById(ctx context.Context, id string) (*types.Booking, error)
 	IsRoomAvailableForBooking(context.Context, *types.BookRoomParams, primitive.ObjectID) (bool, error)
 	UpdateBookingById(ctx context.Context, id string, update bson.M) error
@@ -38,8 +39,8 @@ func NewMongoBookStore(client *mongo.Client) *MongoBookStore {
 	}
 }
 
-func (s *MongoBookStore) GetBookings(ctx context.Context, filter bson.M) ([]*types.Booking, error) {
-	cur, err := s.coll.Find(ctx, filter)
+func (s *MongoBookStore) GetBookings(ctx context.Context, filter bson.M, opts *options.FindOptions) ([]*types.Booking, error) {
+	cur, err := s.coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

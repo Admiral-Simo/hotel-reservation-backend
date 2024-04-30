@@ -36,6 +36,7 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 		if err != nil {
 			return ErrUnAuthorized()
 		}
+
 		// Set the current authenticated user to the context value
 		c.Context().SetUserValue("user", user)
 		return c.Next()

@@ -8,21 +8,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-	userColl = "users"
-)
+const userColl = "users"
 
 type UserStore interface {
 	Dropper
 
 	GetUserById(context.Context, string) (*types.User, error)
-	GetUsers(context.Context) ([]*types.User, error)
+	GetUsers(context.Context, bson.M, *options.FindOptions) ([]*types.User, error)
 	InsertUser(context.Context, *types.User) (*types.User, error)
 	DeleteUser(context.Context, string) error
-	UpdateUser(ctx context.Context, filter bson.M, params types.UpdateUserParams) error
 	GetUserByEmail(ctx context.Context, email string) (*types.User, error)
+	UpdateUser(ctx context.Context, filter bson.M, params types.UpdateUserParams) error
 }
 
 type MongoUserStore struct {
@@ -51,8 +50,8 @@ func (s *MongoUserStore) InsertUser(ctx context.Context, user *types.User) (*typ
 	return user, nil
 }
 
-func (s *MongoUserStore) GetUsers(ctx context.Context) ([]*types.User, error) {
-	cur, err := s.coll.Find(ctx, bson.M{})
+func (s *MongoUserStore) GetUsers(ctx context.Context, filter bson.M, opts *options.FindOptions) ([]*types.User, error) {
+	cur, err := s.coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

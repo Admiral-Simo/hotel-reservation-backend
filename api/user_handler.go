@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserHandler struct {
@@ -86,9 +87,19 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	users, err := h.userStore.GetUsers(c.Context())
+	var (
+		page  int64 = parsePageQueryParam(c.Query("page"))
+		limit int64 = 10
+	)
+	opts := options.FindOptions{}
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	users, err := h.userStore.GetUsers(c.Context(), nil, &opts)
 	if err != nil {
-        return ErrNotFound("users")
+		return ErrNotFound("users")
 	}
-	return c.JSON(users)
+	if users == nil {
+        return c.JSON([]struct{}{})
+	}
+    return c.JSON(users)
 }

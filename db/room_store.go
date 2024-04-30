@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -18,7 +19,7 @@ type RoomStore interface {
 	Dropper
 
 	InsertRoom(context.Context, *types.Room) (*types.Room, error)
-	GetRooms(ctx context.Context, filter bson.M) ([]*types.Room, error)
+	GetRooms(ctx context.Context, filter bson.M, opts *options.FindOptions) ([]*types.Room, error)
 	GetRoomById(ctx context.Context, id primitive.ObjectID) (*types.Room, error)
 }
 
@@ -64,8 +65,8 @@ func (s *MongoRoomStore) InsertRoom(ctx context.Context, room *types.Room) (*typ
 	return room, nil
 }
 
-func (s *MongoRoomStore) GetRooms(ctx context.Context, filter bson.M) ([]*types.Room, error) {
-	cur, err := s.coll.Find(ctx, filter)
+func (s *MongoRoomStore) GetRooms(ctx context.Context, filter bson.M, opts *options.FindOptions) ([]*types.Room, error) {
+	cur, err := s.coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
@@ -26,4 +27,12 @@ func checkBookingAuth(c *fiber.Ctx, booking *types.Booking, user *types.User) er
 		})
 	}
 	return nil
+}
+
+func parsePageQueryParam(pageString string) int64 {
+	page, err := strconv.ParseInt(pageString, 10, 64)
+	if err != nil {
+		page = 1
+	}
+	return page
 }

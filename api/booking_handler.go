@@ -5,6 +5,7 @@ import (
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type BookingHandler struct {
@@ -19,14 +20,21 @@ func NewBookingHandler(store *db.Store) *BookingHandler {
 
 // this needs to be admin authorized!
 func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
-	bookings, err := h.store.Booking.GetBookings(c.Context(), bson.M{})
+	var (
+		page  int64 = parsePageQueryParam(c.Query("page"))
+		limit int64 = 10
+	)
+	opts := options.FindOptions{}
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	bookings, err := h.store.Booking.GetBookings(c.Context(), nil, &opts)
 	if err != nil {
 		return ErrNotFound("users")
 	}
 	if bookings == nil {
-		return c.JSON([]types.Booking{})
+        return c.JSON([]struct{}{})
 	}
-	return c.JSON(bookings)
+    return c.JSON(bookings)
 }
 
 // this needs to be user authorized
