@@ -27,7 +27,14 @@ func (h *HotelHandler) HandleGetRooms(c *fiber.Ctx) error {
 	}
 
 	filter := bson.M{"hotelID": oid}
-	rooms, err := h.store.Room.GetRooms(c.Context(), filter)
+	var (
+		page  int64 = parsePageQueryParam(c.Query("page"))
+		limit int64 = 10
+	)
+	opts := options.FindOptions{}
+	opts.SetSkip((page - 1) * limit)
+	opts.SetLimit(limit)
+	rooms, err := h.store.Room.GetRooms(c.Context(), filter, &opts)
 	if err != nil {
 		return ErrNotFound("rooms")
 	}
@@ -60,7 +67,7 @@ func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
 		return ErrNotFound("hotels")
 	}
 	if hotels == nil {
-        return c.JSON([]struct{}{})
+		return c.JSON([]struct{}{})
 	}
-    return c.JSON(hotels)
+	return c.JSON(hotels)
 }
