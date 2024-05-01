@@ -1,13 +1,11 @@
 package api
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -61,34 +59,31 @@ func (h *RoomHandler) HandleGetRoom(c *fiber.Ctx) error {
 func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	var params *types.BookRoomParams
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return ErrBadRequest()
 	}
 	roomID := c.Params("id")
 	roomOID, err := primitive.ObjectIDFromHex(roomID)
 	if err != nil {
-		return err
+		return ErrInvalidId()
 	}
 
 	user, err := getAuthUser(c)
 
 	if err != nil {
-		return err
+		return ErrUnAuthorized()
 	}
 
 	if err = params.Validate(); err != nil {
-		return err
+		return ErrBadRequest()
 	}
 
 	ok, err := h.store.Booking.IsRoomAvailableForBooking(c.Context(), params, roomOID)
 	if err != nil {
-		return err
+		return ErrNotFound("room")
 	}
 
 	if !ok {
-		return c.Status(http.StatusBadRequest).JSON(genericResponse{
-			Type: "error",
-			Msg:  "room currently unavailable",
-		})
+		return ErrUnavailable("room")
 	}
 
 	booking := params.CreateBooking(user.ID, roomOID)
