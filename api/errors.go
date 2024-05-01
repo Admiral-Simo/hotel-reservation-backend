@@ -49,3 +49,7 @@ func ErrBadRequest() *Error {
 func ErrNotFound(resource string) *Error {
 	return NewError(http.StatusNotFound, resource+" not found")
 }
+
+func ErrUnavailable(resource string) *Error {
+	return NewError(http.StatusNotFound, resource+" unavailable at the moment")
+}
