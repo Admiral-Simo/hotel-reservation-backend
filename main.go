@@ -55,6 +55,7 @@ func main() {
 		apiv1          = app.Group("/api/v1", api.JWTAuthentication(userStore))
 		admin          = apiv1.Group("/admin", api.AdminAuth)
 	)
+    app.Use(api.NotFoundHandler)
 
 	// auth
 	auth.Post("/auth", authHandler.HandleAuthenticate)
