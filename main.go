@@ -39,6 +39,7 @@ func main() {
 		hotelStore   = db.NewMongoHotelStore(client)
 		roomStore    = db.NewMongoRoomStore(client, hotelStore)
 		bookingStore = db.NewMongoBookStore(client)
+		logsStore    = db.NewMongoLogsStore(client)
 		store        = &db.Store{
 			User:    userStore,
 			Room:    roomStore,
@@ -55,7 +56,8 @@ func main() {
 		apiv1          = app.Group("/api/v1", api.JWTAuthentication(userStore))
 		admin          = apiv1.Group("/admin", api.AdminAuth)
 	)
-    app.Use(api.NotFoundHandler)
+
+	app.Use(api.Logger(logsStore))
 
 	// auth
 	auth.Post("/auth", authHandler.HandleAuthenticate)
@@ -84,6 +86,8 @@ func main() {
 	// admin routes
 	admin.Get("/booking", bookingHandler.HandleGetBookings)
 	admin.Get("/user", userHandler.HandleGetUsers)
+
+    app.Use(api.NotFoundHandler)
 
 	app.Listen(*listenAddr)
 }
