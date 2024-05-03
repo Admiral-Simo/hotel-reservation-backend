@@ -54,7 +54,6 @@ func ErrUnavailable(resource string) *Error {
 	return NewError(http.StatusNotFound, resource+" unavailable at the moment")
 }
 
-// New function to handle 404 Not Found errors
 func NotFoundHandler(c *fiber.Ctx) error {
 	errorResponse := ErrNotFound(c.OriginalURL())
 	return c.Status(errorResponse.Code).JSON(errorResponse)
