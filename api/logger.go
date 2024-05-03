@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/Admiral-Simo/HotelReserver/types"
@@ -25,11 +26,12 @@ func Logger(logsStore db.LogsStore) fiber.Handler {
 		}
 
 		log := &types.Log{
-			From:   from,
-			Route:  c.Path(),
-			Method: c.Method(),
-			Header: headers,
-			Body:   body,
+			From:      from,
+			Route:     c.Path(),
+			Method:    c.Method(),
+			Header:    headers,
+			Body:      body,
+			TimeStamp: time.Now(),
 		}
 
 		if err := logsStore.InsertLog(c.Context(), log); err != nil {
