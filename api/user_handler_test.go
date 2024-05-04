@@ -6,12 +6,12 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPostUser(t *testing.T) {
@@ -35,24 +35,20 @@ func TestPostUser(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
-	if err != nil {
-		t.Error(err)
-	}
-    defer resp.Body.Close()
+	assert.Nil(t, err, "getting response error: %v", err)
+
+	defer resp.Body.Close()
 
 	var user types.User
 	json.NewDecoder(resp.Body).Decode(&user)
-	if len(user.ID) == 0 {
-		t.Fatal("expecting a user id to be set")
-	}
-	if len(user.EncryptedPassword) > 0 {
-		t.Fatal("expected the EncryptedPassword not to be included in the json response")
-	}
+
+	assert.NotEmpty(t, user.ID, "expecting a user id to be set")
+
+	assert.Empty(t, user.EncryptedPassword, "expected the EncryptedPassword not to be included in the json response (for security purposes)")
 
 	user.EncryptedPassword = ""
-	if reflect.DeepEqual(user, params) {
-		t.Fatalf("expected user '%v' but got '%v'", params, user)
-	}
+
+	assert.NotEqual(t, user, params, "user and params should not be equal")
 }
 
 func init() {
