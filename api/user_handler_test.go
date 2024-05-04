@@ -35,7 +35,7 @@ func TestPostUser(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
-	assert.Nil(t, err, "getting response error: %v", err)
+	assert.NoError(t, err, "getting response error: %v", err)
 
 	defer resp.Body.Close()
 

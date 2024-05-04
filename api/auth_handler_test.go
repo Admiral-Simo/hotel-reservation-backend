@@ -6,12 +6,12 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	"github.com/Admiral-Simo/HotelReserver/db/fixtures"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthenticateAuthenticateWithWrongCredentials(t *testing.T) {
@@ -38,11 +38,9 @@ func TestAuthenticateAuthenticateWithWrongCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-    defer resp.Body.Close()
+	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("expected http status of %d but got %d", http.StatusBadRequest, resp.StatusCode)
-	}
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "status code should be bad request")
 
 	var genResp genericResponse
 
@@ -50,13 +48,9 @@ func TestAuthenticateAuthenticateWithWrongCredentials(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if genResp.Type != "error" {
-		t.Fatalf("expected 'error' but got '%s'", genResp.Type)
-	}
+	assert.Equal(t, "error", genResp.Type, "gen response type should be error")
 
-	if genResp.Msg != "invalid credentials" {
-		t.Fatalf("expected 'invalid credentials' but got '%s'", genResp.Msg)
-	}
+	assert.Equal(t, "invalid credentials", genResp.Msg, "gen response message should be `invalid credentials`")
 }
 
 func TestAuthenticateSuccess(t *testing.T) {
@@ -80,29 +74,23 @@ func TestAuthenticateSuccess(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "error getting response from /auth: %v", err)
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("expected http status of %d but got %d", http.StatusOK, resp.StatusCode)
-	}
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "status code should be okay")
 
 	var authResponse AuthResponse
-	if err := json.NewDecoder(resp.Body).Decode(&authResponse); err != nil {
-		t.Fatal(err)
-	}
 
-	if authResponse.Token == "" {
-		t.Fatal("expected the JWT token to be present in the auth response")
-	}
+	err = json.NewDecoder(resp.Body).Decode(&authResponse)
+
+	assert.NoError(t, err, "error decoding body at /auth: %v", err)
+
+	assert.NotEmpty(t, authResponse.Token, "expected the JWT token to be present in the auth response")
 
 	// Set the encrypted password to an empty string, because we do NOT return that in any
 	// JSON response
 	insertedUser.EncryptedPassword = ""
-	if !reflect.DeepEqual(insertedUser, authResponse.User) {
-		t.Fatalf("expected authResponse to be '%v' but got '%v'", insertedUser, authResponse.User)
-	}
+
+	assert.Equal(t, insertedUser, authResponse.User, "response and insertedUser should be equal")
 }
 
 func init() {
