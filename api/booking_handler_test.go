@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/Admiral-Simo/HotelReserver/db/fixtures"
 	"github.com/Admiral-Simo/HotelReserver/types"
 	"github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUserGetBooking(t *testing.T) {
@@ -41,14 +41,13 @@ func TestUserGetBooking(t *testing.T) {
 
 	// getting response
 	resp, err := app.Test(req)
-	if err != nil {
-		t.Fatal("couldn't perform request", err)
-	}
+
+	assert.NoError(t, err, "couldn't perform request: %v", err)
 
 	var bookingResp *types.Booking
-	if err := json.NewDecoder(resp.Body).Decode(&bookingResp); err != nil {
-		t.Fatal("error decoding response:", err)
-	}
+
+	err = json.NewDecoder(resp.Body).Decode(&bookingResp)
+	assert.NoError(t, err, "error decoding response: %v", err)
 
 	// avoid conflict due to time inaccuracy
 	bookingResp.FromDate = time.Now()
@@ -56,9 +55,7 @@ func TestUserGetBooking(t *testing.T) {
 	booking.FromDate = bookingResp.FromDate
 	booking.TillDate = bookingResp.TillDate
 
-	if !reflect.DeepEqual(bookingResp, booking) {
-		t.Fatalf("got -> %v\nexpected -> %v\n", bookingResp, booking)
-	}
+	assert.Equal(t, booking, bookingResp, "they should be equal")
 
 	// non authorized user test
 	req = httptest.NewRequest(http.MethodGet, "/"+booking.ID.Hex(), nil)
@@ -66,13 +63,9 @@ func TestUserGetBooking(t *testing.T) {
 
 	resp, err = app.Test(req)
 
-	if err != nil {
-		t.Fatal("couldn't perform request", err)
-	}
+	assert.NoError(t, err, "couldn't perform request: %v", err)
 
-	if resp.StatusCode != http.StatusUnauthorized {
-		t.Fatalf("expected %d status code got %d", http.StatusUnauthorized, resp.StatusCode)
-	}
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, "they should be equal")
 }
 
 func TestGetBookings(t *testing.T) {
@@ -104,25 +97,20 @@ func TestGetBookings(t *testing.T) {
 
 	// getting response
 	resp, err := app.Test(req)
-	if err != nil {
-		t.Fatal("failed to perform request", err)
-	}
+
+	assert.NoError(t, err, "failed to perform request:", err)
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("status code -> %d, expected -> %d.", resp.StatusCode, http.StatusOK)
-	}
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "response code should be OK")
 
 	var bookings []*types.Booking
 
-	if err := json.NewDecoder(resp.Body).Decode(&bookings); err != nil {
-		t.Fatal("cannot decode data ->", err)
-	}
+	err = json.NewDecoder(resp.Body).Decode(&bookings)
 
-	if len(bookings) != 1 {
-		t.Fatalf("expected 1 booking got %d", len(bookings))
-	}
+	assert.NoError(t, err, "cannot decode data ->: %v", err)
+
+	assert.Equal(t, 1, len(bookings), "should be only one booking")
 
 	// avoid conflict due to time inaccuracy
 	bookings[0].FromDate = time.Now()
@@ -130,20 +118,14 @@ func TestGetBookings(t *testing.T) {
 	booking.FromDate = bookings[0].FromDate
 	booking.TillDate = bookings[0].TillDate
 
-	if !reflect.DeepEqual(bookings[0], booking) {
-		t.Fatalf("got -> %v\nexpected -> %v\n", bookings[0], booking)
-	}
+	assert.Equal(t, booking, bookings[0], "booking should be equal")
 
 	// test non admin user
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Add("X-Api-Token", types.CreateTokenFromUser(user))
 
 	resp, err = app.Test(req)
-	if err != nil {
-		t.Fatalf("failed to perform request %v", err)
-	}
+	assert.NoError(t, err, "failed to perform request: %v", err)
 
-	if resp.StatusCode != http.StatusUnauthorized {
-		t.Fatalf("expected %d status code got %d", http.StatusUnauthorized, resp.StatusCode)
-	}
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, "status code should be unauthorized")
 }

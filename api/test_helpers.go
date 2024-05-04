@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Admiral-Simo/HotelReserver/db"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -17,16 +18,16 @@ type testdb struct {
 }
 
 func (tdb *testdb) teardown(t *testing.T) {
-	if err := tdb.client.Database(db.DBNAME).Drop(context.TODO()); err != nil {
-		t.Fatal(err)
-	}
+
+	err := tdb.client.Database(db.DBNAME).Drop(context.TODO())
+	assert.NoError(t, err, "error occurred while dropping database: %v", err)
 }
 
 func setup(t *testing.T) *testdb {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	assert.NoError(t, err, "unexpected error connecting to mongodb:%v", err)
+
 	hotelStore := db.NewMongoHotelStore(client)
 	return &testdb{
 		client: client,
