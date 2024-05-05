@@ -12,7 +12,8 @@ import (
 
 func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tokenString := c.Get("X-Api-Token")
+		// Get the token from the cookie named "accessToken"
+		tokenString := c.Cookies("accessToken")
 
 		claims, err := validateToken(tokenString)
 
@@ -39,9 +40,6 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 
 		// Set the current authenticated user to the context value
 		c.Context().SetUserValue("user", user)
-
-		// Set the token in response header
-		c.Set("X-Api-Token", tokenString) // Automatically set the token in response header
 
 		return c.Next()
 	}
