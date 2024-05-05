@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
+	"os"
 
 	"github.com/Admiral-Simo/HotelReserver/api"
 	"github.com/Admiral-Simo/HotelReserver/db"
@@ -18,9 +18,6 @@ var config = fiber.Config{
 }
 
 func main() {
-	listenAddr := flag.String("listenAddr", ":8080", "The listen address of the API server")
-	flag.Parse()
-
 	// load envirement variables
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("couldn't load envirement variables")
@@ -87,7 +84,9 @@ func main() {
 	admin.Get("/booking", bookingHandler.HandleGetBookings)
 	admin.Get("/user", userHandler.HandleGetUsers)
 
-    app.Use(api.NotFoundHandler)
+	app.Use(api.NotFoundHandler)
 
-	app.Listen(*listenAddr)
+	listenAddr := os.Getenv("HTTP_LISTEN_ADDRESS")
+
+	app.Listen(listenAddr)
 }
