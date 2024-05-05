@@ -39,6 +39,10 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 
 		// Set the current authenticated user to the context value
 		c.Context().SetUserValue("user", user)
+
+		// Set the token in response header
+		c.Set("X-Api-Token", tokenString) // Automatically set the token in response header
+
 		return c.Next()
 	}
 }
