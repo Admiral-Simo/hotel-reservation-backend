@@ -26,8 +26,7 @@ type AuthParams struct {
 }
 
 type AuthResponse struct {
-	User  *types.User `json:"user"`
-	Token string      `json:"token"`
+	User *types.User `json:"user"`
 }
 
 type genericResponse struct {
@@ -65,11 +64,18 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 		return invalidCredentials(c)
 	}
 
-	// TODO: store jwt token into the User HEADER
+	tokenString := types.CreateTokenFromUser(user)
+
 	resp := AuthResponse{
-		User:  user,
-		Token: types.CreateTokenFromUser(user),
+		User: user,
 	}
+
+	// Set the access token as a cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     "accessToken",
+		Value:    tokenString,
+		HTTPOnly: true,
+	})
 
 	return c.JSON(resp)
 }
