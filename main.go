@@ -49,9 +49,12 @@ func main() {
 	app := fiber.New(config)
 
 	// Middleware for CORS
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowOrigins:     "http://localhost:3000",
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowCredentials: true,
 	}))
 
 	app.Use(api.Logger(logsStore))
@@ -100,9 +103,7 @@ func main() {
 	admin.Get("/booking", bookingHandler.HandleGetBookings)
 	admin.Get("/user", userHandler.HandleGetUsers)
 
-	auth.Use(api.NotFoundHandler)
-	admin.Use(api.NotFoundHandler)
-	apiv1.Use(api.NotFoundHandler)
+	app.Use(api.NotFoundHandler)
 
 	listenAddr := os.Getenv("HTTP_LISTEN_ADDRESS")
 
