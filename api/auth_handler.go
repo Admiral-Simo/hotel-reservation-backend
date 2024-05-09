@@ -75,6 +75,7 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 		Name:     "accessToken",
 		Value:    tokenString,
 		HTTPOnly: true,
+		Secure:   true,
 	})
 
 	return c.JSON(resp)
