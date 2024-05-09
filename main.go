@@ -8,6 +8,7 @@ import (
 	"github.com/Admiral-Simo/HotelReserver/api"
 	"github.com/Admiral-Simo/HotelReserver/db"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -43,26 +44,32 @@ func main() {
 			Hotel:   hotelStore,
 			Booking: bookingStore,
 		}
+	)
+
+	app := fiber.New(config)
+
+	// Middleware for CORS
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,PUT,DELETE",
+	}))
+
+	app.Use(api.Logger(logsStore))
+
+	// groups
+	var (
+		apiv1 = app.Group("/api/v1", api.JWTAuthentication(userStore))
+		admin = apiv1.Group("/admin", api.AdminAuth)
+		auth  = app.Group("/api")
+	)
+
+	// handlers
+	var (
 		userHandler    = api.NewUserHandler(userStore)
 		hotelHandler   = api.NewHotelHandler(store)
 		authHandler    = api.NewAuthHandler(userStore)
 		roomHandler    = api.NewRoomHandler(store)
 		bookingHandler = api.NewBookingHandler(store)
-		app            = fiber.New(config)
-		auth           = app.Group("/api")
-	)
-
-	app.Use(api.Logger(logsStore))
-
-	app.Use(func(c *fiber.Ctx) error {
-		c.Set("Access-Control-Allow-Origin", "*")
-		c.Set("Access-Control-Allow-Methods", "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS")
-		return c.Next()
-	})
-
-	var (
-		apiv1 = app.Group("/api/v1", api.JWTAuthentication(userStore))
-		admin = apiv1.Group("/admin", api.AdminAuth)
 	)
 
 	// auth
@@ -93,7 +100,9 @@ func main() {
 	admin.Get("/booking", bookingHandler.HandleGetBookings)
 	admin.Get("/user", userHandler.HandleGetUsers)
 
-	app.Use(api.NotFoundHandler)
+	auth.Use(api.NotFoundHandler)
+	admin.Use(api.NotFoundHandler)
+	apiv1.Use(api.NotFoundHandler)
 
 	listenAddr := os.Getenv("HTTP_LISTEN_ADDRESS")
 
