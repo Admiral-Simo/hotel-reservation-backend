@@ -2,7 +2,7 @@
 
 # environment variables
 ```
-HTTP_LISTEN_ADDRESS=:3000
+HTTP_LISTEN_ADDRESS=:8080
 JWT_SECRET=somethingsupersecretthatNOBODYKNOWS
 MONGO_DB_NAME=hotel-reservation
 MONGO_DB_URL=mongodb://localhost:27017

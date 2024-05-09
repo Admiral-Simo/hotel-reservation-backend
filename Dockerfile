@@ -14,8 +14,8 @@ COPY . .
 # Build the Go application
 RUN go build -o main .
 
-# Expose port 3000 for the Go application
-EXPOSE 3000
+# Expose port 8080 for the Go application
+EXPOSE 8080
 
 # Start the MongoDB service and then run the Go application
 CMD ./main
