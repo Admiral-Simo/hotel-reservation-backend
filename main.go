@@ -50,11 +50,20 @@ func main() {
 		bookingHandler = api.NewBookingHandler(store)
 		app            = fiber.New(config)
 		auth           = app.Group("/api")
-		apiv1          = app.Group("/api/v1", api.JWTAuthentication(userStore))
-		admin          = apiv1.Group("/admin", api.AdminAuth)
 	)
 
 	app.Use(api.Logger(logsStore))
+
+	app.Use(func(c *fiber.Ctx) error {
+		c.Set("Access-Control-Allow-Origin", "*")
+		c.Set("Access-Control-Allow-Methods", "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS")
+		return c.Next()
+	})
+
+	var (
+		apiv1 = app.Group("/api/v1", api.JWTAuthentication(userStore))
+		admin = apiv1.Group("/admin", api.AdminAuth)
+	)
 
 	// auth
 	auth.Post("/auth", authHandler.HandleAuthenticate)
